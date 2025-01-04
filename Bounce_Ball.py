@@ -169,7 +169,130 @@ def draw_roof():
 
 #chisty
 
+def draw_obstacles():
+    # Drawing the ground obstacles
+    for obs in obstacles:
+        glColor3f(0.2, 0.8, 0.2)  # Coloring our Ground obstacle
+        draw_rectangle(obs[0], obs[1], obs[0] + obs[2], obs[1] + obs[3])
+        
+        # Triangle (nail) on top of the ground obstacle
+        glColor3f(0.2, 0.8, 0.2)
+        x1 = obs[0] + obs[2] / 2  # Top of the triangle
+        y1 = obs[1] + obs[3] + 20
+        x2 = obs[0] + obs[2]      # Right base
+        y2 = obs[1] + obs[3]
+        x3 = obs[0]               # Left base
+        y3 = obs[1] + obs[3]
+        draw_triangle(x1, y1, x2, y2, x3, y3)
 
+    # Drawing long obstacles
+    for obs in long_obstacles:
+        glColor3f(0.5, 0.5, 1)  # Long obstacle color
+        draw_rectangle(obs[0], obs[1]-10, (obs[0] + obs[2]), obs[1] + obs[3]-10)
+        
+        # Adding three small triangles on top of the long obstacle
+        triangle_width = obs[2] / 4  # Width of each triangle
+        for i in range(4):
+            x1 = obs[0] + (i + 0.5) * triangle_width  # Top point of the triangle
+            y1 = obs[1] + obs[3] + 15  # Height above the obstacle
+            x2 = obs[0] + (i) * triangle_width  # Left base of the triangle
+            y2 = obs[1] + obs[3]
+            x3 = obs[0] + (i + 1) * triangle_width  # Right base of the triangle
+            y3 = obs[1] + obs[3]
+            glColor3f(0.5, 0.5,1)  # Triangle color
+            draw_triangle(x1, y1-10, x2, y2-10, x3, y3-10)
+            
+
+
+def draw_coins():
+    for coin in coins:
+        glColor3f(1, 1, 0)
+        draw_circle(coin[0], coin[1], 8)
+        
+
+def draw_tall_obstacles():
+    for obs in tall_obstacles:
+        glColor3f(1, 0.5, 0)  # Tall obstacle color
+        draw_rectangle(obs[0], obs[1], obs[0] + obs[2], obs[1] + obs[3])
+
+        # Adding small triangles on the left side of the tall obstacle
+        triangle_height = obs[3] / 4  # Height of each triangle
+        for i in range(4):
+            x1 = obs[0] - 15  # Top point of the triangle (left side)
+            y1 = obs[1] + (i + 0.5) * triangle_height  # Mid-height of each triangle
+            x2 = obs[0]  # Right base of the triangle (aligned with obstacle's left side)
+            y2 = obs[1] + i * triangle_height  # Bottom of the triangle
+            x3 = obs[0]  # Right base of the triangle (aligned with obstacle's left side)
+            y3 = obs[1] + (i + 1) * triangle_height  # Top of the triangle
+            glColor3f(1, 0.5, 0)  # Triangle color
+            draw_triangle(x1, y1, x2, y2, x3, y3)
+            
+def draw_roof_obstacles():
+    for obs in roof_obstacles:
+        glColor3f(0.5, 0.5,1)  # Roof obstacle color
+        draw_rectangle(obs[0], obs[1], obs[0] + obs[2], obs[1] + obs[3])
+        
+        # Adding triangles at the bottom of the roof obstacle
+        triangle_width = obs[2] / 4  # Width of each triangle
+        for i in range(4):
+            x1 = obs[0] + (i + 0.5) * triangle_width  # Bottom point of the triangle
+            y1 = obs[1] - 15  # Distance below the obstacle
+            x2 = obs[0] + i * triangle_width  # Left base
+            y2 = obs[1]
+            x3 = obs[0] + (i + 1) * triangle_width  # Right base
+            y3 = obs[1]
+            glColor3f(0.5, 0.5,1)  # Triangle color
+            draw_triangle(x1, y1, x2, y2, x3, y3)
+
+
+
+# Updating our game logic for tall obstacles
+def draw_diamond(cx, cy, size):
+    """Draw a diamond shape centered at (cx, cy) with given size."""
+    glColor3f(0, 1, 1)  # Diamond color (cyan)
+    half_size = size / 2
+    draw_triangle(cx, cy + half_size, cx - half_size, cy, cx + half_size, cy)  # Top triangle
+    draw_triangle(cx, cy - half_size, cx - half_size, cy, cx + half_size, cy)  # Bottom triangle
+
+def draw_diamonds():
+    for diamond in diamonds:
+        draw_diamond(diamond[0], diamond[1], 20)
+        
+def draw_buttons():
+    for label, (x, y, w, h) in BUTTONS.items():
+        glColor3f(1, 0, 0)  # Button background color
+        draw_rectangle(x, y, x + w, y + h)
+        glColor3f(1, 1, 1)  # Text color
+        render_text(label, x + w // 4, y + h // 4)
+
+def mouse_click(button, state, x, y):
+    global is_paused, is_game_over, ball_position, ball_speed, score, lives, frame_count
+    if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:
+        y = WIN_HEIGHT - y  # Inverting the y-axis for GLUT
+        for label, (bx, by, bw, bh) in BUTTONS.items():
+            if bx <= x <= bx + bw and by <= y <= by + bh:
+                if label == "Pause":
+                    is_paused = not is_paused
+                elif label == "Restart":
+                    restart_game()
+
+
+
+def restart_game():
+    global ball_position, ball_speed, obstacles, roof_obstacles, long_obstacles, tall_obstacles
+    global coins, score, is_game_over, frame_count, lives, diamonds
+    ball_position = [100, GROUND_HEIGHT + 15]
+    ball_speed = [0, 0]
+    obstacles = []
+    roof_obstacles = []
+    long_obstacles = []
+    tall_obstacles = []
+    coins = []
+    diamonds = []
+    score = 0
+    is_game_over = False
+    frame_count = 0
+    lives = 0
 
 
 
