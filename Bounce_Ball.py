@@ -8,6 +8,10 @@ import math
 #rahat
 
 # Game variables
+WIN_WIDTH, WIN_HEIGHT = 600, 400
+GROUND_HEIGHT = 25  # Height of the ground
+ROOF_HEIGHT = WIN_HEIGHT - GROUND_HEIGHT
+
 ball_position = [100, GROUND_HEIGHT + 15] 
 ball_radius = 15
 ball_speed = [0, 0] 
