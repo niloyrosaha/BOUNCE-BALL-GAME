@@ -167,45 +167,6 @@ def draw_roof():
     draw_rectangle(0, ROOF_HEIGHT-100, WIN_WIDTH, WIN_HEIGHT-100)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #chisty
 
 
@@ -265,41 +226,164 @@ def draw_roof():
 
 
 #niloy
+def update_game(value):
+    global ball_position, ball_speed, obstacles, roof_obstacles, long_obstacles, tall_obstacles, diamonds
+    global coins, score, is_game_over, frame_count, lives
+
+    if is_paused or is_game_over:
+        glutTimerFunc(30, update_game, 0)
+        return
+
+    ball_speed[1] += gravity
+    ball_position[1] += ball_speed[1]
+
+    if ball_position[1] - ball_radius <= GROUND_HEIGHT:
+        ball_position[1] = GROUND_HEIGHT + ball_radius
+        ball_speed[1] = 0
+
+
+    if ball_position[1] + ball_radius >= ROOF_HEIGHT:
+        ball_position[1] = ROOF_HEIGHT - ball_radius
+        ball_speed[1] = 0
+
+    for obs in obstacles[:]:
+        obs[0] -= 5
+        if obs[0] + obs[2] < 0:
+            obstacles.remove(obs)
+        if check_collision_circle_rect((ball_position[0], ball_position[1], ball_radius), obs):
+            if lives > 0:
+                lives -= 1
+                obstacles.remove(obs)  
+            else:
+                is_game_over = True
+
+    for obs in roof_obstacles[:]:
+        obs[0] -= 5
+        if obs[0] + obs[2] < 0:
+            roof_obstacles.remove(obs)
+        if check_collision_circle_rect((ball_position[0], ball_position[1], ball_radius), obs):
+            if lives > 0:
+                lives -= 1
+                roof_obstacles.remove(obs) 
+            else:
+                is_game_over = True
+
+    for obs in long_obstacles[:]:
+        obs[0] -= 5
+        if obs[0] + obs[2] < 0:
+            long_obstacles.remove(obs)
+        if check_collision_circle_rect((ball_position[0], ball_position[1], ball_radius), obs):
+            if lives > 0:
+                lives -= 1
+                long_obstacles.remove(obs)  
+            else:
+                is_game_over = True
+
+    for obs in tall_obstacles[:]:
+        obs[0] -= 5
+        if obs[0] + obs[2] < 0:
+            tall_obstacles.remove(obs)
+        if check_collision_circle_rect((ball_position[0], ball_position[1], ball_radius), obs):
+            if lives > 0:
+                lives -= 1
+                tall_obstacles.remove(obs) 
+            else:
+                is_game_over = True
+
+    for coin in coins[:]:
+        coin[0] -= 5
+        if ((ball_position[0] - coin[0]) ** 2 + (ball_position[1] - coin[1]) ** 2) ** 0.5 < ball_radius + 8:
+            coins.remove(coin)
+            score += 1
+
+    for diamond in diamonds[:]:
+        diamond[0] -= 5
+        if ((ball_position[0] - diamond[0]) ** 2 + (ball_position[1] - diamond[1]) ** 2) ** 0.5 < ball_radius + 10:
+            diamonds.remove(diamond)
+            lives += 1  
+
+    
+    frame_count += 1
+    if frame_count % 250 == 0:
+        long_obstacles.append([WIN_WIDTH, GROUND_HEIGHT + 10, 150, 20])
+    if frame_count % 100 == 0:
+        obstacles.append([WIN_WIDTH, GROUND_HEIGHT, 20, 50])
+    if frame_count % 450 == 0:
+        tall_obstacles.append([WIN_WIDTH, GROUND_HEIGHT + 100, 30, 100])
+    if frame_count % 180 == 0:
+        roof_obstacles.append([WIN_WIDTH, ROOF_HEIGHT - 140, 140, 35])
+        
+    diamond_y_positions = [GROUND_HEIGHT + 140, GROUND_HEIGHT + 200, GROUND_HEIGHT + 260, GROUND_HEIGHT + 320]
+    current_y_index = 0
+
+    if frame_count % 100 == 0:
+        diamonds.append([WIN_WIDTH, diamond_y_positions[current_y_index]])
+        current_y_index = (current_y_index + 1) % len(diamond_y_positions)
+
+    if frame_count % 150 == 0:
+        coins.append([WIN_WIDTH + 140, GROUND_HEIGHT + 140])
+
+    if score >= 2:
+        is_game_over = True
+        render_text("YOU WIN!", WIN_WIDTH // 2 - 50, WIN_HEIGHT // 2)
+
+    glutPostRedisplay()
+    glutTimerFunc(30, update_game, 0)
+
+    
+def check_collision_circle_rect(circle, rect):
+    cx, cy, r = circle
+    rx, ry, rw, rh = rect
+
+    closest_x = max(rx, min(cx, rx + rw))
+    closest_y = max(ry, min(cy, ry + rh))
+
+    distance = ((cx - closest_x) ** 2 + (cy - closest_y) ** 2) ** 0.5
+
+    return distance < r
 
 
 
+def render_text(text, x, y):
+    glRasterPos2f(x, y)
+    for char in text:
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
 
+def display():
+    global score, lives
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glLoadIdentity()
 
+    draw_ground()
+    draw_roof()
+    draw_ball()
+    draw_obstacles()
+    draw_coins()
+    draw_tall_obstacles()
+    draw_roof_obstacles()
+    draw_diamonds()
+    draw_buttons()
+    glColor3f(1, 1, 1)
+    render_text(f"Score: {score}", 10, WIN_HEIGHT - 20)
+    render_text(f"Lives: {lives}", 10, WIN_HEIGHT - 40)
 
+    if is_game_over:
+        glColor3f(1, 0, 0)
+        if score >= 2:
+            render_text("YOU WIN!", WIN_WIDTH // 2 - 50, WIN_HEIGHT // 2)
+        else:
+            render_text("GAME OVER", WIN_WIDTH // 2 - 50, WIN_HEIGHT // 2)
 
+    glutSwapBuffers()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def keyboard(key, x, y):
+    global ball_position, ball_speed
+    if key == b' ' and ball_position[1] - ball_radius == GROUND_HEIGHT:
+        ball_speed[1] = jump_speed
+    elif key == b'd':  
+        ball_position[0] += ball_horizontal_speed
+    elif key == b'a':  
+        ball_position[0] -= ball_horizontal_speed
 
 def init_window():
     glutInit()
